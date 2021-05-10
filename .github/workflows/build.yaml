@@ -48,4 +48,4 @@ jobs:
       run: |
         cd rmf_demos_ws
         source install/setup.bash
-        ros2 run rmf_demos_panel integration_test
+        python3 install/rmf_demos_panel/lib/python3.8/site-packages/rmf_demos_panel/integration_test.py
