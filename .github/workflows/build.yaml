@@ -35,4 +35,5 @@ jobs:
         cd rmf_demos_ws
         source install/setup.bash
         ./install/rmf_test_ci/bin/test_script
+        python3 install/rmf_test_ci/lib/python3.8/site-packages/rmf_test_ci/test_script.py
         echo "Done Here"
