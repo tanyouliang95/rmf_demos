@@ -37,13 +37,18 @@ office_tasks = [
 ]
 
 airport_terminal_tasks = [
-    # TODO: fix CleanerBotE Fleet Adapter dies
-    # {"task_type": "Clean", "start_time": 0, "priority": 0,
-    #  "description": {"cleaning_zone": "zone_1"}},
-    # {"task_type": "Clean", "start_time": 0, "priority": 0,
-    #  "description": {"cleaning_zone": "zone_3"}},
     {"task_type": "Clean", "start_time": 0, "priority": 0,
-     "description": {"cleaning_zone": "zone_4"}}
+     "description": {"cleaning_zone": "zone_1"}},
+    {"task_type": "Clean", "start_time": 0, "priority": 0,
+     "description": {"cleaning_zone": "zone_4"}},
+    {"task_type": "Loop", "start_time": 0, "priority": 1, "description":
+        {"num_loops": 2, "start_name": "n23", "finish_name": "n24"}}
+    # TODO: mop cart will drop when step size is high, thus wont test this
+    # {"task_type": "Delivery", "start_time": 0, "description":
+    #     {"pickup_place_name": "mopcart_pickup",
+    #      "pickup_dispenser": "mopcart_dispenser",
+    #      "dropoff_place_name": "spill",
+    #      "dropoff_ingestor": "mopcart_collector"}}
 ]
 
 clinic_tasks = [
@@ -74,19 +79,22 @@ class RMFSenarioTest:
             total_robots: int,
             timeout_sec=50):
         """
-        world_name arg:     Launch file world name 
+        world_name arg:     Launch file world name
         total_robots arg:   number of robots in the world
+        timeout_sec arg:    Time out for init
         """
-        launch_cmd = f"ros2 launch rmf_demos {world_name}.launch.xml headless:=1"
+        self.world_name = world_name
+        launch_cmd = (f"ros2 launch rmf_demos {world_name}.launch.xml"
+                      " headless:=1")
         print(f" Initialize command [{launch_cmd}]")
         self.proc1 = subprocess.Popen(launch_cmd,
-                                      stdout=subprocess.PIPE,
+                                      stdout=subprocess.DEVNULL,
+                                      stderr=subprocess.DEVNULL,
                                       shell=True, preexec_fn=os.setsid)
-        # proc1 = subprocess.Popen("echo 'run' && sleep 2 && echo 'Done'", shell=True)
 
-        # Here we will check if the robot state is avail to determine whether the
-        # if the rmf world is ready.
-        # Periodically Checks the tasks
+        # Here we will check if the robot state is avail to determine whether
+        # the rmf world has launched successfully.
+        # Periodically Checks the tasks till timeout
         start = time.time()
         while True:
             time.sleep(2)
@@ -119,21 +127,26 @@ class RMFSenarioTest:
             raise RuntimeError("gz physics -s: Command Error")
 
     def __del__(self):
-        print("\n\n Destructor is called! <Kill ALL>\n\n")
+        print(f"Destructor is called! <Kill {self.world_name}>\n")
+        self.stop()
+
+    def stop(self):
         # Send the signal to all the process groups in gazebo launch
         os.killpg(os.getpgid(self.proc1.pid), signal.SIGTERM)
-
-        # self.proc1.kill()
         self.proc2.kill()
         self.proc1.poll()
         self.proc2.poll()
-        print(f"AfterKill: {self.proc1.returncode} {self.proc2.returncode}\n")
 
     def start(
             self,
             task_requests: list,
             timeout_sec: int):
-        # should use ros_time as timeout
+        """
+        This will start the intergration test by sending multiple task
+        requests to rmf. Return True if all tasks passed, else false.
+
+        TODO: should use ros_time as timeout
+        """
         print(f"Start senario with {len(task_requests)} requests")
         for req in task_requests:
             print(" - request a task: ", req)
@@ -157,17 +170,19 @@ class RMFSenarioTest:
 
             success_count = 0
             for task in r.json():
-                print(f"task: {task['task_id']}  | state: {task['state']} ")
+                print(f"task: {task['task_id']} \t "
+                      f"| robot: {task['robot_name']} \t"
+                      f"| state: {task['state']} ")
                 if (task['state'] == 'Completed'):
                     success_count += 1
-            print("------------"*4)
+                if (task['state'] == 'Failed'):
+                    return False
+            print("------------"*5)
             if success_count == len(task_requests):
-                print("All Tasks passed!")
+                print(f"[{self.world_name}] All {success_count} Tasks Passed")
                 return True
         return False
 
-    def printout(self):
-        print(" <+> printout from world!  <+> ")
 
 ###############################################################################
 
@@ -179,13 +194,8 @@ def main(args=None):
 
     office = RMFSenarioTest("office", 2)
     success = office.start(office_tasks, 100)
-    office.printout()
-    print("call destructor")
-    # del office
-    # office = None
-    office.__del__()
-    print("Done call destructor")
-    # office.printout()
+    office.stop()
+    del office
 
     if not success:
         raise RuntimeError
@@ -195,11 +205,8 @@ def main(args=None):
 
     airport = RMFSenarioTest("airport_terminal", 11)
     success = airport.start(airport_terminal_tasks, 200)
-
-    print("call destructor")
-    airport.__del__()
+    airport.stop()
     del airport
-    print("Done call destructor")
 
     if not success:
         raise RuntimeError
@@ -209,14 +216,13 @@ def main(args=None):
 
     clinic = RMFSenarioTest("clinic", 4)
     success = clinic.start(clinic_tasks, 500)
-
-    clinic.__del__()
+    clinic.stop()
     del clinic
 
     if not success:
         raise RuntimeError
 
-    print(" ============ EndAll =========== ")
+    print("====================== Successfully End All ======================")
 
 
 if __name__ == "__main__":
