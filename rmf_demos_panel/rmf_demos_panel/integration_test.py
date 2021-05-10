@@ -193,13 +193,13 @@ def main(args=None):
     ###########################################################################
     # Test Senario 1: Office World with 3 requests
 
-    office = RMFSenarioTest("office", 2)
-    success = office.start(office_tasks, 100)
-    office.stop()
-    del office
+    # office = RMFSenarioTest("office", 2)
+    # success = office.start(office_tasks, 100)
+    # office.stop()
+    # del office
 
-    if not success:
-        raise RuntimeError
+    # if not success:
+    #     raise RuntimeError
 
     # ###########################################################################
     # # Test Senario 2: Airport World with 3 requests
