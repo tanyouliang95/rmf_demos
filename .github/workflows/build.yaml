@@ -48,4 +48,6 @@ jobs:
       run: |
         cd rmf_demos_ws
         source install/setup.bash
+        echo "starting"
         python3 install/rmf_demos_panel/lib/python3.8/site-packages/rmf_demos_panel/integration_test.py
+        echo "ending"

@@ -88,8 +88,8 @@ class RMFSenarioTest:
                       " headless:=1")
         print(f" Initialize command [{launch_cmd}]")
         self.proc1 = subprocess.Popen(launch_cmd,
-                                      stdout=subprocess.DEVNULL,
-                                      stderr=subprocess.DEVNULL,
+                                    #   stdout=subprocess.DEVNULL,
+                                    #   stderr=subprocess.DEVNULL,
                                       shell=True, preexec_fn=os.setsid)
 
         # Here we will check if the robot state is avail to determine whether
@@ -188,6 +188,7 @@ class RMFSenarioTest:
 
 
 def main(args=None):
+    print("starting integration test")
 
     ###########################################################################
     # Test Senario 1: Office World with 3 requests
@@ -200,27 +201,27 @@ def main(args=None):
     if not success:
         raise RuntimeError
 
-    ###########################################################################
-    # Test Senario 2: Airport World with 3 requests
+    # ###########################################################################
+    # # Test Senario 2: Airport World with 3 requests
 
-    airport = RMFSenarioTest("airport_terminal", 11)
-    success = airport.start(airport_terminal_tasks, 200)
-    airport.stop()
-    del airport
+    # airport = RMFSenarioTest("airport_terminal", 11)
+    # success = airport.start(airport_terminal_tasks, 200)
+    # airport.stop()
+    # del airport
 
-    if not success:
-        raise RuntimeError
+    # if not success:
+    #     raise RuntimeError
 
-    ###########################################################################
-    # Test Senario 3: Clinic World with 4 requests
+    # ###########################################################################
+    # # Test Senario 3: Clinic World with 4 requests
 
-    clinic = RMFSenarioTest("clinic", 4)
-    success = clinic.start(clinic_tasks, 500)
-    clinic.stop()
-    del clinic
+    # clinic = RMFSenarioTest("clinic", 4)
+    # success = clinic.start(clinic_tasks, 500)
+    # clinic.stop()
+    # del clinic
 
-    if not success:
-        raise RuntimeError
+    # if not success:
+    #     raise RuntimeError
 
     print("====================== Successfully End All ======================")
 
