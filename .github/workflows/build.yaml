@@ -35,3 +35,5 @@ jobs:
         cd rmf_demos_ws
         source install/setup.bash
         ./install/rmf_test_ci/bin/test_script
+        echo "Done Here"
+        ros2 run rmf_test_ci test_script

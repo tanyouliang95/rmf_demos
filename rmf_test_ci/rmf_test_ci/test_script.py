@@ -176,6 +176,8 @@ def main(args=None):
 
     print("This Test Script is starting")
 
+    proc2 = subprocess.Popen("echo 'Runinng a subprocess'" , shell=True)
+    time.sleep(4)
     # ###########################################################################
     # # Test Senario 1: Office World with 3 requests
 
