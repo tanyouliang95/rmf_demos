@@ -97,14 +97,13 @@ class RMFSenarioTest:
         # Periodically Checks the tasks till timeout
         start = time.time()
         while True:
+            if ((time.time() - start) > timeout_sec):
+                raise RuntimeError(f"TimeOut in launching: {launch_cmd}")
             time.sleep(2)
             try:
                 r = requests.get(url=api_server_url + "robot_list")
             except requests.exceptions.ConnectionError:
                 continue
-
-            if ((time.time() - start) > timeout_sec):
-                raise RuntimeError(f"TimeOut in launching: {launch_cmd}")
             if (r.status_code != 200):
                 continue
             if (len(r.json()) == total_robots):
@@ -188,13 +187,13 @@ class RMFSenarioTest:
 
 
 def main(args=None):
-    print("starting integration test")
+    print("Starting integration test")
 
     ###########################################################################
     # Test Senario 1: Office World with 3 requests
 
     office = RMFSenarioTest("office", 2)
-    success = office.start(office_tasks, 100)
+    success = office.start(office_tasks, 150)
     office.stop()
     del office
 
@@ -204,24 +203,24 @@ def main(args=None):
     # ###########################################################################
     # # Test Senario 2: Airport World with 3 requests
 
-    # airport = RMFSenarioTest("airport_terminal", 11)
-    # success = airport.start(airport_terminal_tasks, 200)
-    # airport.stop()
-    # del airport
+    airport = RMFSenarioTest("airport_terminal", 11)
+    success = airport.start(airport_terminal_tasks, 250)
+    airport.stop()
+    del airport
 
-    # if not success:
-    #     raise RuntimeError
+    if not success:
+        raise RuntimeError
 
     # ###########################################################################
     # # Test Senario 3: Clinic World with 4 requests
 
-    # clinic = RMFSenarioTest("clinic", 4)
-    # success = clinic.start(clinic_tasks, 500)
-    # clinic.stop()
-    # del clinic
+    clinic = RMFSenarioTest("clinic", 4)
+    success = clinic.start(clinic_tasks, 600)
+    clinic.stop()
+    del clinic
 
-    # if not success:
-    #     raise RuntimeError
+    if not success:
+        raise RuntimeError
 
     print("====================== Successfully End All ======================")
 
